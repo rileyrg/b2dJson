@@ -1,5 +1,24 @@
 package org.iforce2d;
 
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.joints.*;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.ObjectSet;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Vector;
+
 /*
  Author: Chris Campbell - www.iforce2d.net
 
@@ -17,56 +36,22 @@ package org.iforce2d;
  misrepresented as being the original software.
  3. This notice may not be removed or altered from any source distribution.
  */
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.BufferedReader;
-import java.lang.reflect.Array;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Vector;
-
-import org.jbox2d.collision.*;
-import org.jbox2d.collision.shapes.*;
-import org.jbox2d.common.*;
-import org.jbox2d.dynamics.*;
-import org.jbox2d.dynamics.joints.*;
-
-import org.json.*;
-
-/**
- * 
- * 
- */
 public class Jb2dJson {
 
 	public class Jb2dJsonCustomProperties {
 
-		Map<String, Integer> m_customPropertyMap_int;
-		Map<String, Double> m_customPropertyMap_float;
-		Map<String, String> m_customPropertyMap_string;
-		Map<String, Vec2> m_customPropertyMap_vec2;
-		Map<String, Boolean> m_customPropertyMap_bool;
-		
+		ObjectMap<String, Integer> m_customPropertyMap_int;
+		ObjectMap<String, Double> m_customPropertyMap_float;
+		ObjectMap<String, String> m_customPropertyMap_string;
+		ObjectMap<String, Vector2> m_customPropertyMap_Vector2;
+		ObjectMap<String, Boolean> m_customPropertyMap_bool;
+
 		public Jb2dJsonCustomProperties() {
-			m_customPropertyMap_int = new HashMap<String, Integer>();
-			m_customPropertyMap_float = new HashMap<String, Double>();
-			m_customPropertyMap_string = new HashMap<String, String>();
-			m_customPropertyMap_vec2 = new HashMap<String, Vec2>();
-			m_customPropertyMap_bool = new HashMap<String, Boolean>();
+			m_customPropertyMap_int = new ObjectMap<String, Integer>();
+			m_customPropertyMap_float = new ObjectMap<String, Double>();
+			m_customPropertyMap_string = new ObjectMap<String, String>();
+			m_customPropertyMap_Vector2 = new ObjectMap<String, Vector2>();
+			m_customPropertyMap_bool = new ObjectMap<String, Boolean>();
 		}
 
 	}
@@ -77,27 +62,29 @@ public class Jb2dJson {
 	protected int m_simulationVelocityIterations;
 	protected float m_simulationFPS;
 
-	protected Map<Integer, Body> m_indexToBodyMap;
-	protected Map<Body, Integer> m_bodyToIndexMap;
-	protected Map<Joint, Integer> m_jointToIndexMap;
-	protected Vector<Body> m_bodies;
-	protected Vector<Joint> m_joints;
-	protected Vector<Jb2dJsonImage> m_images;
+	protected ObjectMap<Integer, Body> m_indexToBodyMap;
+	protected ObjectMap<Body, Integer> m_bodyToIndexMap;
+	protected ObjectMap<Joint, Integer> m_jointToIndexMap;
+	protected Array<Body> m_bodies;
+	protected Array<Joint> m_joints;
+	protected Array<Jb2dJsonImage> m_images;
 
-	protected Map<Body, String> m_bodyToNameMap;
-	protected Map<Fixture, String> m_fixtureToNameMap;
-	protected Map<Joint, String> m_jointToNameMap;
-	protected Map<Jb2dJsonImage, String> m_imageToNameMap;
+	protected ObjectMap<Body, String> m_bodyToNameMap;
+	protected ObjectMap<Fixture, String> m_fixtureToNameMap;
+	protected ObjectMap<Joint, String> m_jointToNameMap;
+	protected ObjectMap<Jb2dJsonImage, String> m_imageToNameMap;
 
 	// This maps an item (Body, Fixture etc) to a set of custom properties.
 	// Use null for world properties.
-	protected Map<Object, Jb2dJsonCustomProperties> m_customPropertiesMap;
-	
-	protected Set<Body> m_bodiesWithCustomProperties;
-	protected Set<Fixture> m_fixturesWithCustomProperties;
-	protected Set<Joint> m_jointsWithCustomProperties;
-	protected Set<Jb2dJsonImage> m_imagesWithCustomProperties;
-	protected Set<World> m_worldsWithCustomProperties;
+	protected ObjectMap<Object, Jb2dJsonCustomProperties> m_customPropertiesMap;
+
+	protected ObjectSet<Body> m_bodiesWithCustomProperties;
+	protected ObjectSet<Fixture> m_fixturesWithCustomProperties;
+	protected ObjectSet<Joint> m_jointsWithCustomProperties;
+	protected ObjectSet<Jb2dJsonImage> m_imagesWithCustomProperties;
+	protected ObjectSet<World> m_worldsWithCustomProperties;
+
+	private static final int maxPolygonVertices = 8;
 
 	public Jb2dJson() {
 		this(true);
@@ -118,25 +105,25 @@ public class Jb2dJson {
 		m_simulationVelocityIterations = 8;
 		m_simulationFPS = 60;
 
-		m_indexToBodyMap = new HashMap<Integer, Body>();
-		m_bodyToIndexMap = new HashMap<Body, Integer>();
-		m_jointToIndexMap = new HashMap<Joint, Integer>();
-		m_bodies = new Vector<Body>();
-		m_joints = new Vector<Joint>();
-		m_images = new Vector<Jb2dJsonImage>();
+		m_indexToBodyMap = new ObjectMap<Integer, Body>();
+		m_bodyToIndexMap = new ObjectMap<Body, Integer>();
+		m_jointToIndexMap = new ObjectMap<Joint, Integer>();
+		m_bodies = new Array<Body>();
+		m_joints = new Array<Joint>();
+		m_images = new Array<Jb2dJsonImage>();
 
-		m_bodyToNameMap = new HashMap<Body, String>();
-		m_fixtureToNameMap = new HashMap<Fixture, String>();
-		m_jointToNameMap = new HashMap<Joint, String>();
-		m_imageToNameMap = new HashMap<Jb2dJsonImage, String>();
-		
-		m_customPropertiesMap = new HashMap<Object, Jb2dJsonCustomProperties>();
-		
-		m_bodiesWithCustomProperties = new HashSet<Body>();
-		m_fixturesWithCustomProperties = new HashSet<Fixture>();
-		m_jointsWithCustomProperties = new HashSet<Joint>();
-		m_imagesWithCustomProperties = new HashSet<Jb2dJsonImage>();
-		m_worldsWithCustomProperties = new HashSet<World>();
+		m_bodyToNameMap = new ObjectMap<Body, String>();
+		m_fixtureToNameMap = new ObjectMap<Fixture, String>();
+		m_jointToNameMap = new ObjectMap<Joint, String>();
+		m_imageToNameMap = new ObjectMap<Jb2dJsonImage, String>();
+
+		m_customPropertiesMap = new ObjectMap<Object, Jb2dJsonCustomProperties>();
+
+		m_bodiesWithCustomProperties = new ObjectSet<Body>();
+		m_fixturesWithCustomProperties = new ObjectSet<Fixture>();
+		m_jointsWithCustomProperties = new ObjectSet<Joint>();
+		m_imagesWithCustomProperties = new ObjectSet<Jb2dJsonImage>();
+		m_worldsWithCustomProperties = new ObjectSet<World>();
 	}
 
 	public JSONObject writeToValue(World world) throws JSONException {
@@ -182,10 +169,14 @@ public class Jb2dJson {
 		m_jointToIndexMap.clear();
 
 		vecToJson("gravity", world.getGravity(), worldValue);
+/*
 		worldValue.put("allowSleep", world.isAllowSleep());
+*/
 		worldValue.put("autoClearForces", world.getAutoClearForces());
+/*
 		worldValue.put("warmStarting", world.isWarmStarting());
 		worldValue.put("continuousPhysics", world.isContinuousPhysics());
+*/
 		// worldValue.put("subStepping", world.isSubStepping());
 		// worldValue["hasDestructionListener"] =
 		// world->HasDestructionListener();
@@ -197,7 +188,9 @@ public class Jb2dJson {
 			worldValue.put("customProperties", customPropertyValue);
 
 		int i = 0;
-		for (Body body = world.getBodyList(); null != body; body = body.getNext()) {
+		Array<Body> bodies = new Array<Body>();
+		world.getBodies(bodies);
+		for (Body body : bodies) {
 			m_bodyToIndexMap.put(body, i);
 			worldValue.append("body", b2j(body));
 			i++;
@@ -205,15 +198,17 @@ public class Jb2dJson {
 
 		// need two passes for joints because gear joints reference other joints
 		i = 0;
-		for (Joint joint = world.getJointList(); null != joint; joint = joint.getNext()) {
-			if (joint.getType() == JointType.GEAR)
+		Array<Joint> joints = new Array<Joint>();
+		world.getJoints(joints);
+		for (Joint joint : joints) {
+			if (joint.getType() == JointDef.JointType.GearJoint)
 				continue;
 			m_jointToIndexMap.put(joint, i);
 			worldValue.append("joint", b2j(joint));
 			i++;
 		}
-		for (Joint joint = world.getJointList(); null != joint; joint = joint.getNext()) {
-			if (joint.getType() != JointType.GEAR)
+		for (Joint joint : joints) {
+			if (joint.getType() != JointDef.JointType.GearJoint)
 				continue;
 			m_jointToIndexMap.put(joint, i);
 			worldValue.append("joint", b2j(joint));
@@ -224,7 +219,7 @@ public class Jb2dJson {
 		// is by using the R.U.B.E editor. This code has not been tested,
 		// but should work ok.
 		i = 0;
-		for (Jb2dJsonImage image : m_imageToNameMap.keySet()) {
+		for (Jb2dJsonImage image : m_imageToNameMap.keys()) {
 			worldValue.append("image", b2j(image));
 		}
 
@@ -258,15 +253,15 @@ public class Jb2dJson {
 			bodyValue.put("name", bodyName);
 
 		switch (body.getType()) {
-		case STATIC:
-			bodyValue.put("type", 0);
-			break;
-		case KINEMATIC:
-			bodyValue.put("type", 1);
-			break;
-		case DYNAMIC:
-			bodyValue.put("type", 2);
-			break;
+			case StaticBody:
+				bodyValue.put("type", 0);
+				break;
+			case KinematicBody:
+				bodyValue.put("type", 1);
+				break;
+			case DynamicBody:
+				bodyValue.put("type", 2);
+				break;
 		}
 
 		vecToJson("position", body.getPosition(), bodyValue);
@@ -293,8 +288,7 @@ public class Jb2dJson {
 		if (body.isFixedRotation())
 			bodyValue.put("fixedRotation", true);
 
-		MassData massData = new MassData();
-		body.getMassData(massData);
+		MassData massData = body.getMassData();
 		if (massData.mass != 0)
 			floatToJson("massData-mass", massData.mass, bodyValue);
 		if (massData.center.x != 0 || massData.center.y != 0)
@@ -304,7 +298,7 @@ public class Jb2dJson {
 		}
 
 		int i = 0;
-		for (Fixture fixture = body.getFixtureList(); null != fixture; fixture = fixture.getNext())
+		for (Fixture fixture : body.getFixtureList())
 			bodyValue.append("fixture", b2j(fixture));
 
 		JSONArray customPropertyValue = writeCustomPropertiesToJson(body);
@@ -338,60 +332,72 @@ public class Jb2dJson {
 		if (filter.groupIndex != 0)
 			fixtureValue.put("filter-groupIndex", filter.groupIndex);
 
+		Vector2 tmp = new Vector2();
+
 		Shape shape = fixture.getShape();
 		switch (shape.getType()) {
-		case CIRCLE: {
-			CircleShape circle = (CircleShape) shape;
-			JSONObject shapeValue = new JSONObject();
-			floatToJson("radius", circle.m_radius, shapeValue);
-			vecToJson("center", circle.m_p, shapeValue);
-			fixtureValue.put("circle", shapeValue);
-		}
+			case Circle: {
+				CircleShape circle = (CircleShape) shape;
+				JSONObject shapeValue = new JSONObject();
+				floatToJson("radius", circle.getRadius(), shapeValue);
+				vecToJson("center", circle.getPosition(), shapeValue);
+				fixtureValue.put("circle", shapeValue);
+			}
 			break;
-		case EDGE: {
-			EdgeShape edge = (EdgeShape) shape;
-			JSONObject shapeValue = new JSONObject();
-			vecToJson("vertex1", edge.m_vertex1, shapeValue);
-			vecToJson("vertex2", edge.m_vertex2, shapeValue);
-			if (edge.m_hasVertex0)
-				shapeValue.put("hasVertex0", true);
-			if (edge.m_hasVertex3)
-				shapeValue.put("hasVertex3", true);
-			if (edge.m_hasVertex0)
-				vecToJson("vertex0", edge.m_vertex0, shapeValue);
-			if (edge.m_hasVertex3)
-				vecToJson("vertex3", edge.m_vertex3, shapeValue);
-			fixtureValue.put("edge", shapeValue);
-		}
+			case Edge: {
+				EdgeShape edge = (EdgeShape) shape;
+				JSONObject shapeValue = new JSONObject();
+				edge.getVertex1(tmp);
+				vecToJson("vertex1", tmp, shapeValue);
+				edge.getVertex2(tmp);
+				vecToJson("vertex2", tmp, shapeValue);
+				if (edge.hasVertex0())
+					shapeValue.put("hasVertex0", true);
+				if (edge.hasVertex3())
+					shapeValue.put("hasVertex3", true);
+				if (edge.hasVertex0())
+					edge.getVertex0(tmp);
+				vecToJson("vertex0", tmp, shapeValue);
+				if (edge.hasVertex3())
+					edge.getVertex3(tmp);
+				vecToJson("vertex3", tmp, shapeValue);
+				fixtureValue.put("edge", shapeValue);
+			}
 			break;
-		case CHAIN: {
-			ChainShape chain = (ChainShape) shape;
-			JSONObject shapeValue = new JSONObject();
-			int count = chain.m_count;
-			for (int i = 0; i < count; ++i)
-				vecToJson("vertices", chain.m_vertices[i], shapeValue, i);
-			if (chain.m_hasPrevVertex)
-				shapeValue.put("hasPrevVertex", true);
-			if (chain.m_hasNextVertex)
-				shapeValue.put("hasNextVertex", true);
-			if (chain.m_hasPrevVertex)
-				vecToJson("prevVertex", chain.m_prevVertex, shapeValue);
-			if (chain.m_hasNextVertex)
-				vecToJson("nextVertex", chain.m_nextVertex, shapeValue);
-			fixtureValue.put("chain", shapeValue);
-		}
+			case Chain: {
+				ChainShape chain = (ChainShape) shape;
+				JSONObject shapeValue = new JSONObject();
+				int count = chain.getVertexCount();
+				for (int i = 0; i < count; ++i) {
+					chain.getVertex(i, tmp);
+					vecToJson("vertices", tmp, shapeValue, i);
+				}
+/*
+				if (chain.m_hasPrevVertex)
+					shapeValue.put("hasPrevVertex", true);
+				if (chain.m_hasNextVertex)
+					shapeValue.put("hasNextVertex", true);
+				if (chain.m_hasPrevVertex)
+					vecToJson("prevVertex", chain.m_prevVertex, shapeValue);
+				if (chain.m_hasNextVertex)
+					vecToJson("nextVertex", chain.m_nextVertex, shapeValue);
+*/
+				fixtureValue.put("chain", shapeValue);
+			}
 			break;
-		case POLYGON: {
-			PolygonShape poly = (PolygonShape) shape;
-			JSONObject shapeValue = new JSONObject();
-			int vertexCount = poly.getVertexCount();
-			for (int i = 0; i < vertexCount; ++i)
-				vecToJson("vertices", poly.m_vertices[i], shapeValue, i);
-			fixtureValue.put("polygon", shapeValue);
-		}
+			case Polygon: {
+				PolygonShape poly = (PolygonShape) shape;
+				JSONObject shapeValue = new JSONObject();
+				int vertexCount = poly.getVertexCount();
+				for (int i = 0; i < vertexCount; ++i) {
+					poly.getVertex(i, tmp);
+					vecToJson("vertices", tmp, shapeValue, i);
+				}
+				fixtureValue.put("polygon", shapeValue);
+			}
 			break;
-		default:
-			System.out.println("Unknown shape type : " + shape.getType());
+			default:
+				System.out.println("Unknown shape type : " + shape.getType());
 		}
 
 		JSONArray customPropertyValue = writeCustomPropertiesToJson(fixture);
@@ -420,106 +426,106 @@ public class Jb2dJson {
 
 		// why do Joint.getAnchor methods need to take an argOut style
 		// parameter!?
-		Vec2 tmpAnchor = new Vec2();
+		Vector2 tmpAnchor = new Vector2();
 
 		switch (joint.getType()) {
-		case REVOLUTE: {
-			jointValue.put("type", "revolute");
+			case RevoluteJoint: {
+				jointValue.put("type", "revolute");
 
-			RevoluteJoint revoluteJoint = (RevoluteJoint) joint;
-			revoluteJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			revoluteJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("refAngle", bodyB.getAngle() - bodyA.getAngle() - revoluteJoint.getJointAngle(), jointValue);
-			floatToJson("jointSpeed", revoluteJoint.getJointSpeed(), jointValue);
-			jointValue.put("enableLimit", revoluteJoint.isLimitEnabled());
-			floatToJson("lowerLimit", revoluteJoint.getLowerLimit(), jointValue);
-			floatToJson("upperLimit", revoluteJoint.getUpperLimit(), jointValue);
-			jointValue.put("enableMotor", revoluteJoint.isMotorEnabled());
-			floatToJson("motorSpeed", revoluteJoint.getMotorSpeed(), jointValue);
-			floatToJson("maxMotorTorque", revoluteJoint.getMaxMotorTorque(), jointValue);
-		}
+				RevoluteJoint revoluteJoint = (RevoluteJoint) joint;
+				tmpAnchor = revoluteJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = revoluteJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("refAngle", bodyB.getAngle() - bodyA.getAngle() - revoluteJoint.getJointAngle(), jointValue);
+				floatToJson("jointSpeed", revoluteJoint.getJointSpeed(), jointValue);
+				jointValue.put("enableLimit", revoluteJoint.isLimitEnabled());
+				floatToJson("lowerLimit", revoluteJoint.getLowerLimit(), jointValue);
+				floatToJson("upperLimit", revoluteJoint.getUpperLimit(), jointValue);
+				jointValue.put("enableMotor", revoluteJoint.isMotorEnabled());
+				floatToJson("motorSpeed", revoluteJoint.getMotorSpeed(), jointValue);
+				floatToJson("maxMotorTorque", revoluteJoint.getMaxMotorTorque(), jointValue);
+			}
 			break;
-		case PRISMATIC: {
-			jointValue.put("type", "prismatic");
+			case PrismaticJoint: {
+				jointValue.put("type", "prismatic");
 
-			PrismaticJoint prismaticJoint = (PrismaticJoint) joint;
-			prismaticJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			prismaticJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			vecToJson("localAxisA", prismaticJoint.getLocalAxisA(), jointValue);
-			floatToJson("refAngle", prismaticJoint.getReferenceAngle(), jointValue);
-			jointValue.put("enableLimit", prismaticJoint.isLimitEnabled());
-			floatToJson("lowerLimit", prismaticJoint.getLowerLimit(), jointValue);
-			floatToJson("upperLimit", prismaticJoint.getUpperLimit(), jointValue);
-			jointValue.put("enableMotor", prismaticJoint.isMotorEnabled());
-			floatToJson("maxMotorForce", prismaticJoint.getMaxMotorForce(), jointValue);
-			floatToJson("motorSpeed", prismaticJoint.getMotorSpeed(), jointValue);
-		}
+				PrismaticJoint prismaticJoint = (PrismaticJoint) joint;
+				tmpAnchor = prismaticJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = prismaticJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+				vecToJson("localAxisA", prismaticJoint.getLocalAxisA(), jointValue);
+				floatToJson("refAngle", prismaticJoint.getReferenceAngle(), jointValue);
+				jointValue.put("enableLimit", prismaticJoint.isLimitEnabled());
+				floatToJson("lowerLimit", prismaticJoint.getLowerLimit(), jointValue);
+				floatToJson("upperLimit", prismaticJoint.getUpperLimit(), jointValue);
+				jointValue.put("enableMotor", prismaticJoint.isMotorEnabled());
+				floatToJson("maxMotorForce", prismaticJoint.getMaxMotorForce(), jointValue);
+				floatToJson("motorSpeed", prismaticJoint.getMotorSpeed(), jointValue);
+			}
 			break;
-		case DISTANCE: {
-			jointValue.put("type", "distance");
+			case DistanceJoint: {
+				jointValue.put("type", "distance");
 
-			DistanceJoint distanceJoint = (DistanceJoint) joint;
-			distanceJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			distanceJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("length", distanceJoint.getLength(), jointValue);
-			floatToJson("frequency", distanceJoint.getFrequency(), jointValue);
-			floatToJson("dampingRatio", distanceJoint.getDampingRatio(), jointValue);
-		}
+				DistanceJoint distanceJoint = (DistanceJoint) joint;
+				tmpAnchor = distanceJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = distanceJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("length", distanceJoint.getLength(), jointValue);
+				floatToJson("frequency", distanceJoint.getFrequency(), jointValue);
+				floatToJson("dampingRatio", distanceJoint.getDampingRatio(), jointValue);
+			}
 			break;
-		case PULLEY: {
-			jointValue.put("type", "pulley");
+			case PulleyJoint: {
+				jointValue.put("type", "pulley");
 
-			PulleyJoint pulleyJoint = (PulleyJoint) joint;
-			vecToJson("groundAnchorA", pulleyJoint.getGroundAnchorA(), jointValue);
-			vecToJson("groundAnchorB", pulleyJoint.getGroundAnchorB(), jointValue);
-			pulleyJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("lengthA", (pulleyJoint.getGroundAnchorA().sub(tmpAnchor)).length(), jointValue);
-			pulleyJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("lengthB", (pulleyJoint.getGroundAnchorB().sub(tmpAnchor)).length(), jointValue);
-			floatToJson("ratio", pulleyJoint.getRatio(), jointValue);
-		}
+				PulleyJoint pulleyJoint = (PulleyJoint) joint;
+				vecToJson("groundAnchorA", pulleyJoint.getGroundAnchorA(), jointValue);
+				vecToJson("groundAnchorB", pulleyJoint.getGroundAnchorB(), jointValue);
+				tmpAnchor = pulleyJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("lengthA", (pulleyJoint.getGroundAnchorA().sub(tmpAnchor)).len(), jointValue);
+				tmpAnchor = pulleyJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("lengthB", (pulleyJoint.getGroundAnchorB().sub(tmpAnchor)).len(), jointValue);
+				floatToJson("ratio", pulleyJoint.getRatio(), jointValue);
+			}
 			break;
-		case MOUSE: {
-			jointValue.put("type", "mouse");
+			case MouseJoint: {
+				jointValue.put("type", "mouse");
 
-			MouseJoint mouseJoint = (MouseJoint) joint;
-			vecToJson("target", mouseJoint.getTarget(), jointValue);
-			mouseJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", tmpAnchor, jointValue);
-			floatToJson("maxForce", mouseJoint.getMaxForce(), jointValue);
-			floatToJson("frequency", mouseJoint.getFrequency(), jointValue);
-			floatToJson("dampingRatio", mouseJoint.getDampingRatio(), jointValue);
-		}
+				MouseJoint mouseJoint = (MouseJoint) joint;
+				vecToJson("target", mouseJoint.getTarget(), jointValue);
+				tmpAnchor = mouseJoint.getAnchorB();
+				vecToJson("anchorB", tmpAnchor, jointValue);
+				floatToJson("maxForce", mouseJoint.getMaxForce(), jointValue);
+				floatToJson("frequency", mouseJoint.getFrequency(), jointValue);
+				floatToJson("dampingRatio", mouseJoint.getDampingRatio(), jointValue);
+			}
 			break;
-		case GEAR: {
-			// Wheel joints are apparently not implemented in JBox2D yet, but
-			// when they are, commenting out the following section should work.
+			case GearJoint: {
+				// Wheel joints are apparently not implemented in JBox2D yet, but
+				// when they are, commenting out the following section should work.
 			/*
 			 * jointValue.put("type", "gear");
-			 * 
+			 *
 			 * GearJoint gearJoint = (GearJoint)joint; int jointIndex1 =
 			 * lookupJointIndex( gearJoint.getJoint1() ); int jointIndex2 =
 			 * lookupJointIndex( gearJoint.getJoint2() );
 			 * jointValue.put("joint1", jointIndex1); jointValue.put("joint2",
 			 * jointIndex2); jointValue.put("ratio", gearJoint.getRatio());
 			 */
-		}
+			}
 			break;
-		case WHEEL: {
-			// Wheel joints are apparently not implemented in JBox2D yet, but
-			// when they are, commenting out the following section... might
-			// work.
+			case WheelJoint: {
+				// Wheel joints are apparently not implemented in JBox2D yet, but
+				// when they are, commenting out the following section... might
+				// work.
 			/*
 			 * jointValue.put("type", "wheel");
-			 * 
+			 *
 			 * WheelJoint wheelJoint = (WheelJoint)joint;
 			 * wheelJoint.getAnchorA(tmpAnchor); vecToJson("anchorA",
 			 * bodyA.getLocalPoint(tmpAnchor), jointValue);
@@ -534,49 +540,51 @@ public class Jb2dJson {
 			 * jointValue); floatToJson("springDampingRatio",
 			 * wheelJoint.getSpringDampingRatio(), jointValue);
 			 */
-		}
+			}
 			break;
-		case WELD: {
-			jointValue.put("type", "weld");
+			case WeldJoint: {
+				jointValue.put("type", "weld");
 
-			WeldJoint weldJoint = (WeldJoint) joint;
-			weldJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			weldJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("refAngle", weldJoint.getReferenceAngle(), jointValue);
-		}
+				WeldJoint weldJoint = (WeldJoint) joint;
+				tmpAnchor = weldJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = weldJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+/*
+				floatToJson("refAngle", weldJoint.getReferenceAngle(), jointValue);
+*/
+			}
 			break;
-		case FRICTION: {
-			jointValue.put("type", "friction");
+			case FrictionJoint: {
+				jointValue.put("type", "friction");
 
-			FrictionJoint frictionJoint = (FrictionJoint) joint;
-			frictionJoint.getAnchorA(tmpAnchor);
-			vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
-			frictionJoint.getAnchorB(tmpAnchor);
-			vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("maxForce", frictionJoint.getMaxForce(), jointValue);
-			floatToJson("maxTorque", frictionJoint.getMaxTorque(), jointValue);
-		}
+				FrictionJoint frictionJoint = (FrictionJoint) joint;
+				tmpAnchor = frictionJoint.getAnchorA();
+				vecToJson("anchorA", bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = frictionJoint.getAnchorB();
+				vecToJson("anchorB", bodyB.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("maxForce", frictionJoint.getMaxForce(), jointValue);
+				floatToJson("maxTorque", frictionJoint.getMaxTorque(), jointValue);
+			}
 			break;
-		case ROPE: {
-			// Rope joints are apparently not implemented in JBox2D yet, but
-			// when they are, commenting out the following section should work.
-			
-			jointValue.put("type", "rope");
-			 
-			RopeJoint ropeJoint = (RopeJoint)joint;
-			ropeJoint.getAnchorA(tmpAnchor); vecToJson("anchorA",
-			bodyA.getLocalPoint(tmpAnchor), jointValue);
-			ropeJoint.getAnchorB(tmpAnchor); vecToJson("anchorB",
-			bodyB.getLocalPoint(tmpAnchor), jointValue);
-			floatToJson("maxLength", ropeJoint.getMaxLength(), jointValue);
-			 
-		}
+			case RopeJoint: {
+				// Rope joints are apparently not implemented in JBox2D yet, but
+				// when they are, commenting out the following section should work.
+
+				jointValue.put("type", "rope");
+
+				RopeJoint ropeJoint = (RopeJoint)joint;
+				tmpAnchor = ropeJoint.getAnchorA(); vecToJson("anchorA",
+						bodyA.getLocalPoint(tmpAnchor), jointValue);
+				tmpAnchor = ropeJoint.getAnchorB(); vecToJson("anchorB",
+						bodyB.getLocalPoint(tmpAnchor), jointValue);
+				floatToJson("maxLength", ropeJoint.getMaxLength(), jointValue);
+
+			}
 			break;
-		case UNKNOWN:
-		default:
-			System.out.println("Unknown joint type : " + joint.getType());
+			case Unknown:
+			default:
+				System.out.println("Unknown joint type : " + joint.getType());
 		}
 
 		JSONArray customPropertyValue = writeCustomPropertiesToJson(joint);
@@ -602,26 +610,26 @@ public class Jb2dJson {
 		vecToJson("center", image.center, imageValue);
 		floatToJson("angle", image.angle, imageValue);
 		floatToJson("scale", image.scale, imageValue);
-                floatToJson("aspectScale", image.aspectScale, imageValue);
+		floatToJson("aspectScale", image.aspectScale, imageValue);
 		if (image.flip)
 			imageValue.put("flip", true);
 		floatToJson("opacity", image.opacity, imageValue);
 		imageValue.put("filter", image.filter);
 		floatToJson("renderOrder", image.renderOrder, imageValue);
-		
-	    boolean defaultColorTint = true;
-	    for (int i = 0; i < 4; i++) {
-	        if ( image.colorTint[i] != 255 ) {
-	            defaultColorTint = false;
-	            break;
-	        }
-	    }
 
-	    if ( !defaultColorTint ) {
-	    	JSONArray array = imageValue.getJSONArray("colorTint");
-	        for (int i = 0; i < 4; i++)
-	        	array.put(i, image.colorTint[i]);	        
-	    }
+		boolean defaultColorTint = true;
+		for (int i = 0; i < 4; i++) {
+			if ( image.colorTint[i] != 255 ) {
+				defaultColorTint = false;
+				break;
+			}
+		}
+
+		if ( !defaultColorTint ) {
+			JSONArray array = imageValue.getJSONArray("colorTint");
+			for (int i = 0; i < 4; i++)
+				array.put(i, image.colorTint[i]);
+		}
 
 		// image->updateCorners();
 		for (int i = 0; i < 4; i++)
@@ -726,11 +734,11 @@ public class Jb2dJson {
 			floatToJson(name, v, value);
 	}
 
-	public void vecToJson(String name, Vec2 vec, JSONObject value) throws JSONException {
+	public void vecToJson(String name, Vector2 vec, JSONObject value) throws JSONException {
 		vecToJson(name, vec, value, -1);
 	}
 
-	public void vecToJson(String name, Vec2 vec, JSONObject value, int index) throws JSONException {
+	public void vecToJson(String name, Vector2 vec, JSONObject value, int index) throws JSONException {
 		if (index > -1) {
 			if (m_useHumanReadableFloats) {
 				boolean alreadyHadArray = value.has(name);
@@ -813,32 +821,17 @@ public class Jb2dJson {
 	}
 
 	// Pass null for existingWorld to create a new world
-	public World readFromFile(String filename, StringBuilder errorMsg, World existingWorld) {
-		if (null == filename)
+	public World readFromFile(FileHandle h, StringBuilder errorMsg, World existingWorld) {
+		if (null == h)
 			return null;
 
-		String str = new String();
-		try {
-			InputStream fis;
-			fis = new FileInputStream(filename);
-			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
-			String line;
-			while ((line = br.readLine()) != null) {
-				str += line;
-			}
-		} catch (FileNotFoundException e) {
-			errorMsg.append("Could not open file for reading: " + filename);
-			return null;
-		} catch (IOException e) {
-			errorMsg.append("Error reading file: " + filename);
-			return null;
-		}
-
+		String str;
+		str = h.readString(Charset.forName("UTF-8").toString());
 		try {
 			JSONObject worldValue = new JSONObject(str);
 			return j2b2World(worldValue, existingWorld);
 		} catch (JSONException e) {
-			errorMsg.append("\nFailed to parse JSON: " + filename);
+			errorMsg.append("\nFailed to parse JSON: " + h);
 			e.printStackTrace();
 			return null;
 		}
@@ -847,9 +840,7 @@ public class Jb2dJson {
 	public World j2b2World(JSONObject worldValue, World existingWorld) throws JSONException {
 		World world = existingWorld;
 		if ( world == null )
-			world = new World(jsonToVec("gravity", worldValue));
-
-		world.setAllowSleep(worldValue.getBoolean("allowSleep"));
+			world = new World(jsonToVec("gravity", worldValue), worldValue.getBoolean("allowSleep"));
 
 		world.setAutoClearForces(worldValue.getBoolean("autoClearForces"));
 		world.setWarmStarting(worldValue.getBoolean("warmStarting"));
@@ -911,19 +902,19 @@ public class Jb2dJson {
 	public Body j2b2Body(World world, JSONObject bodyValue) throws JSONException {
 		BodyDef bodyDef = new BodyDef();
 		switch (bodyValue.getInt("type")) {
-		case 0:
-			bodyDef.type = BodyType.STATIC;
-			break;
-		case 1:
-			bodyDef.type = BodyType.KINEMATIC;
-			break;
-		case 2:
-			bodyDef.type = BodyType.DYNAMIC;
-			break;
+			case 0:
+				bodyDef.type = BodyDef.BodyType.StaticBody;
+				break;
+			case 1:
+				bodyDef.type = BodyDef.BodyType.KinematicBody;
+				break;
+			case 2:
+				bodyDef.type = BodyDef.BodyType.DynamicBody;
+				break;
 		}
-		bodyDef.position = jsonToVec("position", bodyValue);
+		bodyDef.position.set(jsonToVec("position", bodyValue));
 		bodyDef.angle = jsonToFloat("angle", bodyValue);
-		bodyDef.linearVelocity = jsonToVec("linearVelocity", bodyValue);
+		bodyDef.linearVelocity.set(jsonToVec("linearVelocity", bodyValue));
 		bodyDef.angularVelocity = jsonToFloat("angularVelocity", bodyValue);
 		bodyDef.linearDamping = jsonToFloat("linearDamping", bodyValue, -1, 0);
 		bodyDef.angularDamping = jsonToFloat("angularDamping", bodyValue, -1, 0);
@@ -973,78 +964,78 @@ public class Jb2dJson {
 		fixtureDef.density = jsonToFloat("density", fixtureValue);
 		fixtureDef.isSensor = fixtureValue.optBoolean("sensor", false);
 
-		fixtureDef.filter.categoryBits = fixtureValue.optInt("filter-categoryBits", 0x0001);
-		fixtureDef.filter.maskBits = fixtureValue.optInt("filter-maskBits", 0xffff);
-		fixtureDef.filter.groupIndex = fixtureValue.optInt("filter-groupIndex", 0);
+		fixtureDef.filter.categoryBits = (short) fixtureValue.optInt("filter-categoryBits", 0x0001);
+		fixtureDef.filter.maskBits = (short) fixtureValue.optInt("filter-maskBits", 0xffff);
+		fixtureDef.filter.groupIndex = (short) fixtureValue.optInt("filter-groupIndex", 0);
 
 		Fixture fixture = null;
 		if (null != fixtureValue.optJSONObject("circle")) {
 			JSONObject circleValue = fixtureValue.getJSONObject("circle");
 			CircleShape circleShape = new CircleShape();
-			circleShape.m_radius = jsonToFloat("radius", circleValue);
-			circleShape.m_p.set(jsonToVec("center", circleValue));
+			circleShape.setRadius(jsonToFloat("radius", circleValue));
+			circleShape.setPosition(jsonToVec("center", circleValue));
 			fixtureDef.shape = circleShape;
 			fixture = body.createFixture(fixtureDef);
 		} else if (null != fixtureValue.optJSONObject("edge")) {
 			JSONObject edgeValue = fixtureValue.getJSONObject("edge");
 			EdgeShape edgeShape = new EdgeShape();
-			edgeShape.m_vertex1.set(jsonToVec("vertex1", edgeValue));
-			edgeShape.m_vertex2.set(jsonToVec("vertex2", edgeValue));
-			edgeShape.m_hasVertex0 = edgeValue.optBoolean("hasVertex0", false);
-			edgeShape.m_hasVertex3 = edgeValue.optBoolean("hasVertex3", false);
-			if (edgeShape.m_hasVertex0)
-				edgeShape.m_vertex0.set(jsonToVec("vertex0", edgeValue));
-			if (edgeShape.m_hasVertex3)
-				edgeShape.m_vertex3.set(jsonToVec("vertex3", edgeValue));
+			edgeShape.set(jsonToVec("vertex1", edgeValue), jsonToVec("vertex2", edgeValue));
+			edgeShape.setHasVertex0(edgeValue.optBoolean("hasVertex0", false));
+			edgeShape.setHasVertex3(edgeValue.optBoolean("hasVertex3", false));
+			if (edgeShape.hasVertex0())
+				edgeShape.setVertex0(jsonToVec("vertex0", edgeValue));
+			if (edgeShape.hasVertex3())
+				edgeShape.setVertex3(jsonToVec("vertex3", edgeValue));
 			fixtureDef.shape = edgeShape;
 			fixture = body.createFixture(fixtureDef);
 		} else if (null != fixtureValue.optJSONObject("loop")) {// support old
-																// format (r197)
+			// format (r197)
 			JSONObject chainValue = fixtureValue.getJSONObject("loop");
 			ChainShape chainShape = new ChainShape();
 			int numVertices = chainValue.getJSONArray("x").length();
-			Vec2 vertices[] = new Vec2[numVertices];
+			Vector2 vertices[] = new Vector2[numVertices];
 			for (int i = 0; i < numVertices; i++)
 				vertices[i].set(jsonToVec("vertices", chainValue, i));
-			chainShape.createLoop(vertices, numVertices);
+			chainShape.createLoop(vertices);
 			fixtureDef.shape = chainShape;
 			fixture = body.createFixture(fixtureDef);
 		} else if (null != fixtureValue.optJSONObject("chain")) {
 			JSONObject chainValue = fixtureValue.getJSONObject("chain");
 			ChainShape chainShape = new ChainShape();
 			int numVertices = chainValue.getJSONObject("vertices").getJSONArray("x").length();
-			Vec2 vertices[] = new Vec2[numVertices];
+			Vector2 vertices[] = new Vector2[numVertices];
 			for (int i = 0; i < numVertices; i++)
 				vertices[i] = jsonToVec("vertices", chainValue, i);
-			chainShape.createChain(vertices, numVertices);
+			chainShape.createChain(vertices);
+/*
 			chainShape.m_hasPrevVertex = chainValue.optBoolean("hasPrevVertex", false);
 			chainShape.m_hasNextVertex = chainValue.optBoolean("hasNextVertex", false);
 			if (chainShape.m_hasPrevVertex)
 				chainShape.m_prevVertex.set(jsonToVec("prevVertex", chainValue));
 			if (chainShape.m_hasNextVertex)
 				chainShape.m_nextVertex.set(jsonToVec("nextVertex", chainValue));
+*/
 			fixtureDef.shape = chainShape;
 			fixture = body.createFixture(fixtureDef);
 		} else if (null != fixtureValue.optJSONObject("polygon")) {
 			JSONObject polygonValue = fixtureValue.getJSONObject("polygon");
-			Vec2 vertices[] = new Vec2[Settings.maxPolygonVertices];
 			int numVertices = polygonValue.getJSONObject("vertices").getJSONArray("x").length();
-			if (numVertices > Settings.maxPolygonVertices) {
+			Vector2 vertices[] = new Vector2[numVertices];
+			if (numVertices > maxPolygonVertices) {
 				System.out.println("Ignoring polygon fixture with too many vertices.");
 			} else if (numVertices < 2) {
 				System.out.println("Ignoring polygon fixture less than two vertices.");
 			} else if (numVertices == 2) {
 				System.out.println("Creating edge shape instead of polygon with two vertices.");
 				EdgeShape edgeShape = new EdgeShape();
-				edgeShape.m_vertex1.set(jsonToVec("vertices", polygonValue, 0));
-				edgeShape.m_vertex2.set(jsonToVec("vertices", polygonValue, 1));
+				edgeShape.set(jsonToVec("vertices", polygonValue, 0), jsonToVec("vertices", polygonValue, 1));
 				fixtureDef.shape = edgeShape;
 				fixture = body.createFixture(fixtureDef);
 			} else {
 				PolygonShape polygonShape = new PolygonShape();
 				for (int i = 0; i < numVertices; i++)
 					vertices[i] = jsonToVec("vertices", polygonValue, i);
-				polygonShape.set(vertices, numVertices);
+				polygonShape.set(vertices);
 				fixtureDef.shape = polygonShape;
 				fixture = body.createFixture(fixtureDef);
 			}
@@ -1063,7 +1054,7 @@ public class Jb2dJson {
 
 		int bodyIndexA = jointValue.getInt("bodyA");
 		int bodyIndexB = jointValue.getInt("bodyB");
-		if (bodyIndexA >= m_bodies.size() || bodyIndexB >= m_bodies.size())
+		if (bodyIndexA >= m_bodies.size || bodyIndexB >= m_bodies.size)
 			return null;
 
 		// keep these in scope after the if/else below
@@ -1081,12 +1072,12 @@ public class Jb2dJson {
 		// will be used to select one of the above to work with
 		JointDef jointDef = null;
 
-		Vec2 mouseJointTarget = new Vec2(0, 0);
+		Vector2 mouseJointTarget = new Vector2(0, 0);
 		String type = jointValue.optString("type", "");
 		if (type.equals("revolute")) {
 			jointDef = revoluteDef = new RevoluteJointDef();
-			revoluteDef.localAnchorA = jsonToVec("anchorA", jointValue);
-			revoluteDef.localAnchorB = jsonToVec("anchorB", jointValue);
+			revoluteDef.localAnchorA.set(jsonToVec("anchorA", jointValue));
+			revoluteDef.localAnchorB.set(jsonToVec("anchorB", jointValue));
 			revoluteDef.referenceAngle = jsonToFloat("refAngle", jointValue);
 			revoluteDef.enableLimit = jointValue.optBoolean("enableLimit", false);
 			revoluteDef.lowerAngle = jsonToFloat("lowerLimit", jointValue);
@@ -1160,8 +1151,8 @@ public class Jb2dJson {
 		// For now, we will make do with a revolute joint.
 		else if (type.equals("wheel")) {
 			jointDef = revoluteDef = new RevoluteJointDef();
-			revoluteDef.localAnchorA = jsonToVec("anchorA", jointValue);
-			revoluteDef.localAnchorB = jsonToVec("anchorB", jointValue);
+			revoluteDef.localAnchorA.set(jsonToVec("anchorA", jointValue));
+			revoluteDef.localAnchorB.set(jsonToVec("anchorB", jointValue));
 			revoluteDef.enableMotor = jointValue.optBoolean("enableMotor", false);
 			revoluteDef.motorSpeed = jsonToFloat("motorSpeed", jointValue);
 			revoluteDef.maxMotorTorque = jsonToFloat("maxMotorTorque", jointValue);
@@ -1176,13 +1167,13 @@ public class Jb2dJson {
 			frictionDef.localAnchorB.set(jsonToVec("anchorB", jointValue));
 			frictionDef.maxForce = jsonToFloat("maxForce", jointValue);
 			frictionDef.maxTorque = jsonToFloat("maxTorque", jointValue);
-		} else if ( type.equals("rope") ) { 
-			jointDef = ropeDef = new RopeJointDef(); 
-			ropeDef.localAnchorA.set( jsonToVec("anchorA", jointValue) ); 
-			ropeDef.localAnchorB.set( jsonToVec("anchorB", jointValue) ); 
-			ropeDef.maxLength = jsonToFloat("maxLength", jointValue); 
+		} else if ( type.equals("rope") ) {
+			jointDef = ropeDef = new RopeJointDef();
+			ropeDef.localAnchorA.set( jsonToVec("anchorA", jointValue) );
+			ropeDef.localAnchorB.set( jsonToVec("anchorB", jointValue) );
+			ropeDef.maxLength = jsonToFloat("maxLength", jointValue);
 		}
-		 
+
 
 		if (null != jointDef) {
 			// set features common to all joints
@@ -1224,22 +1215,22 @@ public class Jb2dJson {
 		img.center = jsonToVec("center", imageValue);
 		img.angle = jsonToFloat("angle", imageValue);
 		img.scale = jsonToFloat("scale", imageValue);
-                img.aspectScale = jsonToFloat("aspectScale", imageValue);
+		img.aspectScale = jsonToFloat("aspectScale", imageValue);
 		img.opacity = jsonToFloat("opacity", imageValue);
 		img.renderOrder = jsonToFloat("renderOrder", imageValue);
 
-	    JSONArray colorTintArray = imageValue.optJSONArray("colorTint");
-	    if ( null != colorTintArray ) {
-	        for (int i = 0; i < 4; i++) {
-	            img.colorTint[i] = colorTintArray.getInt(i);
-	        }
-	    }
-		
+		JSONArray colorTintArray = imageValue.optJSONArray("colorTint");
+		if ( null != colorTintArray ) {
+			for (int i = 0; i < 4; i++) {
+				img.colorTint[i] = colorTintArray.getInt(i);
+			}
+		}
+
 		img.flip = imageValue.optBoolean("flip", false);
 
 		img.filter = imageValue.optInt("filter", 1);
 
-		img.corners = new Vec2[4];
+		img.corners = new Vector2[4];
 		for (int i = 0; i < 4; i++)
 			img.corners[i] = jsonToVec("corners", imageValue, i);
 
@@ -1290,31 +1281,31 @@ public class Jb2dJson {
 			Object obj = array.opt(index);
 			if (null == obj)
 				return defaultValue;
-			// else if ( value[name].isString() )
-			// return hexToFloat( value[name].asString() );
+				// else if ( value[name].isString() )
+				// return hexToFloat( value[name].asString() );
 			else
 				return ((Number) obj).floatValue();
 		} else {
 			Object obj = value.opt(name);
 			if (null == obj)
 				return defaultValue;
-			// else if ( value[name].isString() )
-			// return hexToFloat( value[name].asString() );
+				// else if ( value[name].isString() )
+				// return hexToFloat( value[name].asString() );
 			else
 				return ((Number) obj).floatValue();
 		}
 	}
 
-	Vec2 jsonToVec(String name, JSONObject value) throws JSONException {
-		return jsonToVec(name, value, -1, new Vec2(0, 0));
+	Vector2 jsonToVec(String name, JSONObject value) throws JSONException {
+		return jsonToVec(name, value, -1, new Vector2(0, 0));
 	}
 
-	Vec2 jsonToVec(String name, JSONObject value, int index) throws JSONException {
-		return jsonToVec(name, value, index, new Vec2(0, 0));
+	Vector2 jsonToVec(String name, JSONObject value, int index) throws JSONException {
+		return jsonToVec(name, value, index, new Vector2(0, 0));
 	}
 
-	Vec2 jsonToVec(String name, JSONObject value, int index, Vec2 defaultValue) throws JSONException {
-		Vec2 vec = defaultValue;
+	Vector2 jsonToVec(String name, JSONObject value, int index, Vector2 defaultValue) throws JSONException {
+		Vector2 vec = defaultValue;
 
 		if (!value.has(name))
 			return defaultValue;
@@ -1349,9 +1340,9 @@ public class Jb2dJson {
 
 	public Body[] getBodiesByName(String name) {
 		Set<Body> keys = new HashSet<Body>();
-		for (Entry<Body, String> entry : m_bodyToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				keys.add(entry.getKey());
+		for (ObjectMap.Entry<Body, String> entry : m_bodyToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				keys.add(entry.key);
 			}
 		}
 		return keys.toArray(new Body[0]);
@@ -1359,9 +1350,9 @@ public class Jb2dJson {
 
 	public Fixture[] getFixturesByName(String name) {
 		Set<Fixture> keys = new HashSet<Fixture>();
-		for (Entry<Fixture, String> entry : m_fixtureToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				keys.add(entry.getKey());
+		for (ObjectMap.Entry<Fixture, String> entry : m_fixtureToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				keys.add(entry.key);
 			}
 		}
 		return keys.toArray(new Fixture[0]);
@@ -1369,9 +1360,9 @@ public class Jb2dJson {
 
 	public Joint[] getJointsByName(String name) {
 		Set<Joint> keys = new HashSet<Joint>();
-		for (Entry<Joint, String> entry : m_jointToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				keys.add(entry.getKey());
+		for (ObjectMap.Entry<Joint, String> entry : m_jointToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				keys.add(entry.key);
 			}
 		}
 		return keys.toArray(new Joint[0]);
@@ -1379,9 +1370,9 @@ public class Jb2dJson {
 
 	public Jb2dJsonImage[] getImagesByName(String name) {
 		Set<Jb2dJsonImage> keys = new HashSet<Jb2dJsonImage>();
-		for (Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				keys.add(entry.getKey());
+		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				keys.add(entry.key);
 			}
 		}
 		return keys.toArray(new Jb2dJsonImage[0]);
@@ -1392,36 +1383,36 @@ public class Jb2dJson {
 	}
 
 	public Body getBodyByName(String name) {
-		for (Entry<Body, String> entry : m_bodyToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				return entry.getKey();
+		for (ObjectMap.Entry<Body, String> entry : m_bodyToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				return entry.key;
 			}
 		}
 		return null;
 	}
 
 	public Fixture getFixtureByName(String name) {
-		for (Entry<Fixture, String> entry : m_fixtureToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				return entry.getKey();
+		for (ObjectMap.Entry<Fixture, String> entry : m_fixtureToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				return entry.key;
 			}
 		}
 		return null;
 	}
 
 	public Joint getJointByName(String name) {
-		for (Entry<Joint, String> entry : m_jointToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				return entry.getKey();
+		for (ObjectMap.Entry<Joint, String> entry : m_jointToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				return entry.key;
 			}
 		}
 		return null;
 	}
 
 	public Jb2dJsonImage getImageByName(String name) {
-		for (Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entrySet()) {
-			if (name.equals(entry.getValue())) {
-				return entry.getKey();
+		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
+			if (name.equals(entry.value)) {
+				return entry.key;
 			}
 		}
 		return null;
@@ -1430,7 +1421,7 @@ public class Jb2dJson {
 	// //// custom properties
 
 	public Jb2dJsonCustomProperties getCustomPropertiesForItem(Object item, boolean createIfNotExisting) {
-		
+
 		if (m_customPropertiesMap.containsKey(item))
 			return m_customPropertiesMap.get(item);
 
@@ -1457,21 +1448,21 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_string.put(propertyName, val);
 	}
 
-	protected void setCustomVector(Object item, String propertyName, Vec2 val) {
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
+	protected void setCustomVector(Object item, String propertyName, Vector2 val) {
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
 	}
 
 	protected void setCustomBool(Object item, String propertyName, boolean val) {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_bool.put(propertyName, val);
 	}
-	
-	
+
+
 	public void setCustomInt(Body item, String propertyName, int val) {
 		m_bodiesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_int.put(propertyName, val);
 	}
 
-	public void setCustomFloat(Body item, String propertyName, float val) {		
+	public void setCustomFloat(Body item, String propertyName, float val) {
 		m_bodiesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_float.put(propertyName, new Double(val));
 	}
@@ -1481,17 +1472,17 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_string.put(propertyName, val);
 	}
 
-	public void setCustomVector(Body item, String propertyName, Vec2 val) {
+	public void setCustomVector(Body item, String propertyName, Vector2 val) {
 		m_bodiesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Body item, String propertyName, boolean val) {
 		m_bodiesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_bool.put(propertyName, val);
 	}
-	
-	
+
+
 	public void setCustomInt(Fixture item, String propertyName, int val) {
 		m_fixturesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_int.put(propertyName, val);
@@ -1507,17 +1498,17 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_string.put(propertyName, val);
 	}
 
-	public void setCustomVector(Fixture item, String propertyName, Vec2 val) {
+	public void setCustomVector(Fixture item, String propertyName, Vector2 val) {
 		m_fixturesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Fixture item, String propertyName, boolean val) {
 		m_fixturesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_bool.put(propertyName, val);
 	}
-	
-	
+
+
 	public void setCustomInt(Joint item, String propertyName, int val) {
 		m_jointsWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_int.put(propertyName, val);
@@ -1533,17 +1524,17 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_string.put(propertyName, val);
 	}
 
-	public void setCustomVector(Joint item, String propertyName, Vec2 val) {
+	public void setCustomVector(Joint item, String propertyName, Vector2 val) {
 		m_jointsWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Joint item, String propertyName, boolean val) {
 		m_jointsWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_bool.put(propertyName, val);
 	}
-	
-	
+
+
 	public void setCustomInt(Jb2dJsonImage item, String propertyName, int val) {
 		m_imagesWithCustomProperties.add(item);
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_int.put(propertyName, val);
@@ -1559,9 +1550,9 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_string.put(propertyName, val);
 	}
 
-	public void setCustomVector(Jb2dJsonImage item, String propertyName, Vec2 val) {
+	public void setCustomVector(Jb2dJsonImage item, String propertyName, Vector2 val) {
 		m_imagesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Jb2dJsonImage item, String propertyName, boolean val) {
@@ -1569,7 +1560,7 @@ public class Jb2dJson {
 		getCustomPropertiesForItem(item, true).m_customPropertyMap_bool.put(propertyName, val);
 	}
 
-	
+
 
 	// hasCustomXXX
 
@@ -1590,7 +1581,7 @@ public class Jb2dJson {
 
 	public boolean hasCustomVector(Object item, String propertyName) {
 		return getCustomPropertiesForItem(item, false) != null &&
-				getCustomPropertiesForItem(item, false).m_customPropertyMap_vec2.containsKey(propertyName);
+				getCustomPropertiesForItem(item, false).m_customPropertyMap_Vector2.containsKey(propertyName);
 	}
 
 	public boolean hasCustomBool(Object item, String propertyName) {
@@ -1627,12 +1618,12 @@ public class Jb2dJson {
 		return defaultVal;
 	}
 
-	public Vec2 getCustomVector(Object item, String propertyName, Vec2 defaultVal) {
+	public Vector2 getCustomVector(Object item, String propertyName, Vector2 defaultVal) {
 		Jb2dJsonCustomProperties props = getCustomPropertiesForItem(item, false);
 		if (null == props)
 			return defaultVal;
-		if (props.m_customPropertyMap_vec2.containsKey(propertyName))
-			return props.m_customPropertyMap_vec2.get(propertyName);
+		if (props.m_customPropertyMap_Vector2.containsKey(propertyName))
+			return props.m_customPropertyMap_Vector2.get(propertyName);
 		return defaultVal;
 	}
 
@@ -1676,11 +1667,11 @@ public class Jb2dJson {
 		return items.size();
 	}
 
-	public int getBodiesByCustomVector(String propertyName, Vec2 valueToMatch, Vector<Body> items) {
+	public int getBodiesByCustomVector(String propertyName, Vector2 valueToMatch, Vector<Body> items) {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1727,11 +1718,11 @@ public class Jb2dJson {
 		return null;
 	}
 
-	Body getBodyByCustomVector(String propertyName, Vec2 valueToMatch) {
+	Body getBodyByCustomVector(String propertyName, Vector2 valueToMatch) {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1778,11 +1769,11 @@ public class Jb2dJson {
 		return items.size();
 	}
 
-	public int getFixturesByCustomVector(String propertyName, Vec2 valueToMatch, Vector<Fixture> items) {
+	public int getFixturesByCustomVector(String propertyName, Vector2 valueToMatch, Vector<Fixture> items) {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1829,11 +1820,11 @@ public class Jb2dJson {
 		return null;
 	}
 
-	Fixture getFixtureByCustomVector(String propertyName, Vec2 valueToMatch) {
+	Fixture getFixtureByCustomVector(String propertyName, Vector2 valueToMatch) {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1880,11 +1871,11 @@ public class Jb2dJson {
 		return items.size();
 	}
 
-	public int getJointsByCustomVector(String propertyName, Vec2 valueToMatch, Vector<Joint> items) {
+	public int getJointsByCustomVector(String propertyName, Vector2 valueToMatch, Vector<Joint> items) {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1931,11 +1922,11 @@ public class Jb2dJson {
 		return null;
 	}
 
-	Joint getJointByCustomVector(String propertyName, Vec2 valueToMatch) {
+	Joint getJointByCustomVector(String propertyName, Vector2 valueToMatch) {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1982,11 +1973,11 @@ public class Jb2dJson {
 		return items.size();
 	}
 
-	public int getImagesByCustomVector(String propertyName, Vec2 valueToMatch, Vector<Jb2dJsonImage> items) {
+	public int getImagesByCustomVector(String propertyName, Vector2 valueToMatch, Vector<Jb2dJsonImage> items) {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -2033,11 +2024,11 @@ public class Jb2dJson {
 		return null;
 	}
 
-	Jb2dJsonImage getImageByCustomVector(String propertyName, Vec2 valueToMatch) {
+	Jb2dJsonImage getImageByCustomVector(String propertyName, Vector2 valueToMatch) {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vec2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -2063,52 +2054,52 @@ public class Jb2dJson {
 		int i = 0;
 
 		{
-			Iterator<Entry<String, Integer>> it = props.m_customPropertyMap_int.entrySet().iterator();
+			Iterator<ObjectMap.Entry<String, Integer>> it = props.m_customPropertyMap_int.entries().iterator();
 			while (it.hasNext()) {
-				Entry<String, Integer> pair = (Entry<String, Integer>) it.next();
+				ObjectMap.Entry<String, Integer> pair = (ObjectMap.Entry<String, Integer>) it.next();
 				JSONObject propValue = new JSONObject();
-				propValue.put("name", pair.getKey());
-				propValue.put("int", pair.getValue());
+				propValue.put("name", pair.key);
+				propValue.put("int", pair.value);
 				customPropertiesValue.put(i++, propValue);
 			}
 		}
 		{
-			Iterator<Entry<String, Double>> it = props.m_customPropertyMap_float.entrySet().iterator();
+			Iterator<ObjectMap.Entry<String, Double>> it = props.m_customPropertyMap_float.entries().iterator();
 			while (it.hasNext()) {
-				Entry<String, Double> pair = (Entry<String, Double>) it.next();
+				ObjectMap.Entry<String, Double> pair = (ObjectMap.Entry<String, Double>) it.next();
 				JSONObject propValue = new JSONObject();
-				propValue.put("name", pair.getKey());
-				propValue.put("float", pair.getValue());
+				propValue.put("name", pair.key);
+				propValue.put("float", pair.value);
 				customPropertiesValue.put(i++, propValue);
 			}
 		}
 		{
-			Iterator<Entry<String, String>> it = props.m_customPropertyMap_string.entrySet().iterator();
+			Iterator<ObjectMap.Entry<String, String>> it = props.m_customPropertyMap_string.entries().iterator();
 			while (it.hasNext()) {
-				Entry<String, String> pair = (Entry<String, String>) it.next();
+				ObjectMap.Entry<String, String> pair = (ObjectMap.Entry<String, String>) it.next();
 				JSONObject propValue = new JSONObject();
-				propValue.put("name", pair.getKey());
-				propValue.put("string", pair.getValue());
+				propValue.put("name", pair.key);
+				propValue.put("string", pair.value);
 				customPropertiesValue.put(i++, propValue);
 			}
 		}
 		{
-			Iterator<Entry<String, Vec2>> it = props.m_customPropertyMap_vec2.entrySet().iterator();
+			Iterator<ObjectMap.Entry<String, Vector2>> it = props.m_customPropertyMap_Vector2.entries().iterator();
 			while (it.hasNext()) {
-				Entry<String, Vec2> pair = (Entry<String, Vec2>) it.next();
+				ObjectMap.Entry<String, Vector2> pair = (ObjectMap.Entry<String, Vector2>) it.next();
 				JSONObject propValue = new JSONObject();
-				propValue.put("name", pair.getKey());
-				vecToJson("vec2", pair.getValue(), propValue);
+				propValue.put("name", pair.key);
+				vecToJson("Vector2", pair.value, propValue);
 				customPropertiesValue.put(i++, propValue);
 			}
 		}
 		{
-			Iterator<Entry<String, Boolean>> it = props.m_customPropertyMap_bool.entrySet().iterator();
+			Iterator<ObjectMap.Entry<String, Boolean>> it = props.m_customPropertyMap_bool.entries().iterator();
 			while (it.hasNext()) {
-				Entry<String, Boolean> pair = (Entry<String, Boolean>) it.next();
+				ObjectMap.Entry<String, Boolean> pair = (ObjectMap.Entry<String, Boolean>) it.next();
 				JSONObject propValue = new JSONObject();
-				propValue.put("name", pair.getKey());
-				propValue.put("bool", pair.getValue());
+				propValue.put("name", pair.key);
+				propValue.put("bool", pair.value);
 				customPropertiesValue.put(i++, propValue);
 			}
 		}
@@ -2136,8 +2127,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("vec2"))
-					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
+				if (propValue.has("Vector2"))
+					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2165,8 +2156,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("vec2"))
-					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
+				if (propValue.has("Vector2"))
+					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2193,8 +2184,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("vec2"))
-					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
+				if (propValue.has("Vector2"))
+					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2221,8 +2212,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("vec2"))
-					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
+				if (propValue.has("Vector2"))
+					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2249,8 +2240,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("vec2"))
-					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
+				if (propValue.has("Vector2"))
+					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}

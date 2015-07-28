@@ -18,23 +18,8 @@ package org.iforce2d;
  3. This notice may not be removed or altered from any source distribution.
 */
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
-
-import org.jbox2d.collision.*;
-import org.jbox2d.collision.shapes.*;
-import org.jbox2d.common.*;
-import org.jbox2d.dynamics.*;
-import org.jbox2d.dynamics.joints.*;
-
-import org.json.*;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 
 /**
  * 
@@ -45,7 +30,7 @@ public class Jb2dJsonImage {
     String name;
     String file;
     Body body;
-    Vec2 center;
+    Vector2 center;
     float angle;
     float scale;
     float aspectScale;
@@ -55,7 +40,7 @@ public class Jb2dJsonImage {
     float renderOrder;
     int colorTint[];
 
-    Vec2 corners[];
+    Vector2 corners[];
 
     int numPoints;
     float points[];
