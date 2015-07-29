@@ -31,7 +31,7 @@ public class Jb2dJsonImage {
     String file;
     public Body body;
     public Vector2 center;
-    float angle;
+    public float angle;
     float scale;
     float aspectScale;
     boolean flip;
@@ -40,7 +40,7 @@ public class Jb2dJsonImage {
     float renderOrder;
     int colorTint[];
 
-    Vector2 corners[];
+    public Vector2[] corners;
 
     int numPoints;
     float points[];
