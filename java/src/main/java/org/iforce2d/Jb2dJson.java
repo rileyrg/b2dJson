@@ -1379,7 +1379,7 @@ public class Jb2dJson {
 	}
 
 	public Jb2dJsonImage[] getAllImages() {
-		return (Jb2dJsonImage[]) m_images.toArray();
+		return  m_images.toArray(Jb2dJsonImage.class);
 	}
 
 	public Body getBodyByName(String name) {
