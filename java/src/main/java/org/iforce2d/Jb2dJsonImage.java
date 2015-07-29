@@ -29,8 +29,8 @@ public class Jb2dJsonImage {
 
     String name;
     String file;
-    Body body;
-    Vector2 center;
+    public Body body;
+    public Vector2 center;
     float angle;
     float scale;
     float aspectScale;

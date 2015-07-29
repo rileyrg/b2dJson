@@ -43,14 +43,14 @@ public class Jb2dJson {
 		ObjectMap<String, Integer> m_customPropertyMap_int;
 		ObjectMap<String, Double> m_customPropertyMap_float;
 		ObjectMap<String, String> m_customPropertyMap_string;
-		ObjectMap<String, Vector2> m_customPropertyMap_Vector2;
+		ObjectMap<String, Vector2> m_customPropertyMap_vec2;
 		ObjectMap<String, Boolean> m_customPropertyMap_bool;
 
 		public Jb2dJsonCustomProperties() {
 			m_customPropertyMap_int = new ObjectMap<String, Integer>();
 			m_customPropertyMap_float = new ObjectMap<String, Double>();
 			m_customPropertyMap_string = new ObjectMap<String, String>();
-			m_customPropertyMap_Vector2 = new ObjectMap<String, Vector2>();
+			m_customPropertyMap_vec2 = new ObjectMap<String, Vector2>();
 			m_customPropertyMap_bool = new ObjectMap<String, Boolean>();
 		}
 
@@ -1449,7 +1449,7 @@ public class Jb2dJson {
 	}
 
 	protected void setCustomVector(Object item, String propertyName, Vector2 val) {
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
 	}
 
 	protected void setCustomBool(Object item, String propertyName, boolean val) {
@@ -1474,7 +1474,7 @@ public class Jb2dJson {
 
 	public void setCustomVector(Body item, String propertyName, Vector2 val) {
 		m_bodiesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Body item, String propertyName, boolean val) {
@@ -1500,7 +1500,7 @@ public class Jb2dJson {
 
 	public void setCustomVector(Fixture item, String propertyName, Vector2 val) {
 		m_fixturesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Fixture item, String propertyName, boolean val) {
@@ -1526,7 +1526,7 @@ public class Jb2dJson {
 
 	public void setCustomVector(Joint item, String propertyName, Vector2 val) {
 		m_jointsWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Joint item, String propertyName, boolean val) {
@@ -1552,7 +1552,7 @@ public class Jb2dJson {
 
 	public void setCustomVector(Jb2dJsonImage item, String propertyName, Vector2 val) {
 		m_imagesWithCustomProperties.add(item);
-		getCustomPropertiesForItem(item, true).m_customPropertyMap_Vector2.put(propertyName, val);
+		getCustomPropertiesForItem(item, true).m_customPropertyMap_vec2.put(propertyName, val);
 	}
 
 	public void setCustomBool(Jb2dJsonImage item, String propertyName, boolean val) {
@@ -1581,7 +1581,7 @@ public class Jb2dJson {
 
 	public boolean hasCustomVector(Object item, String propertyName) {
 		return getCustomPropertiesForItem(item, false) != null &&
-				getCustomPropertiesForItem(item, false).m_customPropertyMap_Vector2.containsKey(propertyName);
+				getCustomPropertiesForItem(item, false).m_customPropertyMap_vec2.containsKey(propertyName);
 	}
 
 	public boolean hasCustomBool(Object item, String propertyName) {
@@ -1622,8 +1622,8 @@ public class Jb2dJson {
 		Jb2dJsonCustomProperties props = getCustomPropertiesForItem(item, false);
 		if (null == props)
 			return defaultVal;
-		if (props.m_customPropertyMap_Vector2.containsKey(propertyName))
-			return props.m_customPropertyMap_Vector2.get(propertyName);
+		if (props.m_customPropertyMap_vec2.containsKey(propertyName))
+			return props.m_customPropertyMap_vec2.get(propertyName);
 		return defaultVal;
 	}
 
@@ -2084,7 +2084,7 @@ public class Jb2dJson {
 			}
 		}
 		{
-			Iterator<ObjectMap.Entry<String, Vector2>> it = props.m_customPropertyMap_Vector2.entries().iterator();
+			Iterator<ObjectMap.Entry<String, Vector2>> it = props.m_customPropertyMap_vec2.entries().iterator();
 			while (it.hasNext()) {
 				ObjectMap.Entry<String, Vector2> pair = (ObjectMap.Entry<String, Vector2>) it.next();
 				JSONObject propValue = new JSONObject();
@@ -2127,8 +2127,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("Vector2"))
-					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
+				if (propValue.has("vec2"))
+					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2156,8 +2156,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("Vector2"))
-					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
+				if (propValue.has("vec2"))
+					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2184,8 +2184,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("Vector2"))
-					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
+				if (propValue.has("vec2"))
+					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2212,8 +2212,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("Vector2"))
-					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
+				if (propValue.has("vec2"))
+					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
@@ -2240,8 +2240,8 @@ public class Jb2dJson {
 					setCustomFloat(item, propertyName, (float) propValue.getDouble("float"));
 				if (propValue.has("string"))
 					setCustomString(item, propertyName, propValue.getString("string"));
-				if (propValue.has("Vector2"))
-					setCustomVector(item, propertyName, this.jsonToVec("Vector2", propValue));
+				if (propValue.has("vec2"))
+					setCustomVector(item, propertyName, this.jsonToVec("vec2", propValue));
 				if (propValue.has("bool"))
 					setCustomBool(item, propertyName, propValue.getBoolean("bool"));
 			}
