@@ -38,6 +38,16 @@ import java.util.Vector;
  */
 public class Jb2dJson {
 
+	public World getWorld() {
+		return world;
+	}
+
+	private World world;
+
+	public Array<Body> getBodies() {
+		return m_bodies;
+	}
+
 	public class Jb2dJsonCustomProperties {
 
 		ObjectMap<String, Integer> m_customPropertyMap_int;
@@ -573,10 +583,12 @@ public class Jb2dJson {
 
 				jointValue.put("type", "rope");
 
-				RopeJoint ropeJoint = (RopeJoint)joint;
-				tmpAnchor = ropeJoint.getAnchorA(); vecToJson("anchorA",
+				RopeJoint ropeJoint = (RopeJoint) joint;
+				tmpAnchor = ropeJoint.getAnchorA();
+				vecToJson("anchorA",
 						bodyA.getLocalPoint(tmpAnchor), jointValue);
-				tmpAnchor = ropeJoint.getAnchorB(); vecToJson("anchorB",
+				tmpAnchor = ropeJoint.getAnchorB();
+				vecToJson("anchorB",
 						bodyB.getLocalPoint(tmpAnchor), jointValue);
 				floatToJson("maxLength", ropeJoint.getMaxLength(), jointValue);
 
@@ -619,13 +631,13 @@ public class Jb2dJson {
 
 		boolean defaultColorTint = true;
 		for (int i = 0; i < 4; i++) {
-			if ( image.colorTint[i] != 255 ) {
+			if (image.colorTint[i] != 255) {
 				defaultColorTint = false;
 				break;
 			}
 		}
 
-		if ( !defaultColorTint ) {
+		if (!defaultColorTint) {
 			JSONArray array = imageValue.getJSONArray("colorTint");
 			for (int i = 0; i < 4; i++)
 				array.put(i, image.colorTint[i]);
@@ -829,7 +841,7 @@ public class Jb2dJson {
 		str = h.readString(Charset.forName("UTF-8").toString());
 		try {
 			JSONObject worldValue = new JSONObject(str);
-			return j2b2World(worldValue, existingWorld);
+			return world = j2b2World(worldValue, existingWorld);
 		} catch (JSONException e) {
 			errorMsg.append("\nFailed to parse JSON: " + h);
 			e.printStackTrace();
@@ -839,7 +851,7 @@ public class Jb2dJson {
 
 	public World j2b2World(JSONObject worldValue, World existingWorld) throws JSONException {
 		World world = existingWorld;
-		if ( world == null )
+		if (world == null)
 			world = new World(jsonToVec("gravity", worldValue), worldValue.getBoolean("allowSleep"));
 
 		world.setAutoClearForces(worldValue.getBoolean("autoClearForces"));
@@ -1167,10 +1179,10 @@ public class Jb2dJson {
 			frictionDef.localAnchorB.set(jsonToVec("anchorB", jointValue));
 			frictionDef.maxForce = jsonToFloat("maxForce", jointValue);
 			frictionDef.maxTorque = jsonToFloat("maxTorque", jointValue);
-		} else if ( type.equals("rope") ) {
+		} else if (type.equals("rope")) {
 			jointDef = ropeDef = new RopeJointDef();
-			ropeDef.localAnchorA.set( jsonToVec("anchorA", jointValue) );
-			ropeDef.localAnchorB.set( jsonToVec("anchorB", jointValue) );
+			ropeDef.localAnchorA.set(jsonToVec("anchorA", jointValue));
+			ropeDef.localAnchorB.set(jsonToVec("anchorB", jointValue));
 			ropeDef.maxLength = jsonToFloat("maxLength", jointValue);
 		}
 
@@ -1220,7 +1232,7 @@ public class Jb2dJson {
 		img.renderOrder = jsonToFloat("renderOrder", imageValue);
 
 		JSONArray colorTintArray = imageValue.optJSONArray("colorTint");
-		if ( null != colorTintArray ) {
+		if (null != colorTintArray) {
 			for (int i = 0; i < 4; i++) {
 				img.colorTint[i] = colorTintArray.getInt(i);
 			}
@@ -1378,8 +1390,17 @@ public class Jb2dJson {
 		return keys.toArray(new Jb2dJsonImage[0]);
 	}
 
-	public Jb2dJsonImage[] getAllImages() {
-		return  m_images.toArray(Jb2dJsonImage.class);
+	public Array<Jb2dJsonImage> getAllImages() {
+		return m_images;
+	}
+
+	public void getImagesForBody(Body body, Array<Jb2dJsonImage> arr) {
+		for (Jb2dJsonImage img : m_images) {
+			if (img.body != null)
+				if (img.body.equals(body))
+					arr.add(img);
+		}
+
 	}
 
 	public Body getBodyByName(String name) {
@@ -1561,7 +1582,6 @@ public class Jb2dJson {
 	}
 
 
-
 	// hasCustomXXX
 
 	public boolean hasCustomInt(Object item, String propertyName) {
@@ -1641,7 +1661,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1651,7 +1671,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1661,7 +1681,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch) )
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				items.add(item);
 		}
 		return items.size();
@@ -1671,7 +1691,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1681,7 +1701,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1692,7 +1712,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1702,7 +1722,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1712,7 +1732,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				return item;
 		}
 		return null;
@@ -1722,7 +1742,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1732,7 +1752,7 @@ public class Jb2dJson {
 		Iterator<Body> iterator = m_bodiesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Body item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1743,7 +1763,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1753,7 +1773,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1763,7 +1783,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				items.add(item);
 		}
 		return items.size();
@@ -1773,7 +1793,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1783,7 +1803,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1794,7 +1814,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1804,7 +1824,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1814,7 +1834,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				return item;
 		}
 		return null;
@@ -1824,7 +1844,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1834,7 +1854,7 @@ public class Jb2dJson {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Fixture item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1845,7 +1865,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1855,7 +1875,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1865,7 +1885,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				items.add(item);
 		}
 		return items.size();
@@ -1875,7 +1895,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1885,7 +1905,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1896,7 +1916,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1906,7 +1926,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1916,7 +1936,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				return item;
 		}
 		return null;
@@ -1926,7 +1946,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1936,7 +1956,7 @@ public class Jb2dJson {
 		Iterator<Joint> iterator = m_jointsWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Joint item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -1947,7 +1967,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1957,7 +1977,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1967,7 +1987,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				items.add(item);
 		}
 		return items.size();
@@ -1977,7 +1997,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1987,7 +2007,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				items.add(item);
 		}
 		return items.size();
@@ -1998,7 +2018,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomInt(item, propertyName) && getCustomInt( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomInt(item, propertyName) && getCustomInt(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -2008,7 +2028,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomFloat(item, propertyName) && getCustomFloat( item, propertyName, 0 ) == valueToMatch)
+			if (hasCustomFloat(item, propertyName) && getCustomFloat(item, propertyName, 0) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -2018,7 +2038,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomString(item, propertyName) && getCustomString( item, propertyName, new String() ).equals(valueToMatch))
+			if (hasCustomString(item, propertyName) && getCustomString(item, propertyName, new String()).equals(valueToMatch))
 				return item;
 		}
 		return null;
@@ -2028,7 +2048,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomVector(item, propertyName) && getCustomVector( item, propertyName, new Vector2(0,0) ) == valueToMatch)
+			if (hasCustomVector(item, propertyName) && getCustomVector(item, propertyName, new Vector2(0, 0)) == valueToMatch)
 				return item;
 		}
 		return null;
@@ -2038,7 +2058,7 @@ public class Jb2dJson {
 		Iterator<Jb2dJsonImage> iterator = m_imagesWithCustomProperties.iterator();
 		while (iterator.hasNext()) {
 			Jb2dJsonImage item = iterator.next();
-			if (hasCustomBool(item, propertyName) && getCustomBool( item, propertyName, false ) == valueToMatch)
+			if (hasCustomBool(item, propertyName) && getCustomBool(item, propertyName, false) == valueToMatch)
 				return item;
 		}
 		return null;
