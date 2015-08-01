@@ -27,7 +27,7 @@ import com.badlogic.gdx.physics.box2d.Body;
  */
 public class Jb2dJsonImage {
 
-    String name;
+    public String name;
     String file;
     public Body body;
     public Vector2 center;
@@ -35,7 +35,7 @@ public class Jb2dJsonImage {
     float scale;
     float aspectScale;
     boolean flip;
-    float opacity;
+    public float opacity;
     int filter; // 0 = nearest, 1 = linear
     float renderOrder;
     int colorTint[];
