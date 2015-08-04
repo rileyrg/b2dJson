@@ -838,7 +838,8 @@ public class Jb2dJson {
 			return null;
 
 		String str;
-		str = h.readString(Charset.forName("UTF-8").toString());
+		str = h.readString(Charset.forName("UTF-8").toString()); //todo figure out charsets
+//		str = h.readString();
 		try {
 			JSONObject worldValue = new JSONObject(str);
 			return world = j2b2World(worldValue, existingWorld);
