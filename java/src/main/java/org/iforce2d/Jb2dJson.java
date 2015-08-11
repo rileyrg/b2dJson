@@ -1394,13 +1394,13 @@ public class Jb2dJson {
 		return m_images;
 	}
 
-	public void getImagesForBody(Body body, Array<Jb2dJsonImage> arr) {
-		for (Jb2dJsonImage img : m_images) {
-			if (img.body != null)
-				if (img.body.equals(body))
-					arr.add(img);
+	public Jb2dJsonImage[] getImagesForBody(Body body) {
+		Set<Jb2dJsonImage> keys = new HashSet<Jb2dJsonImage>();
+		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
+			if (body==null&&entry.key.body == null||body!=null&&body.equals(entry.key.body))
+				keys.add(entry.key);
 		}
-
+		return keys.toArray(new Jb2dJsonImage[0]);
 	}
 
 	public Body getBodyByName(String name) {

@@ -28,7 +28,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 public class Jb2dJsonImage {
 
     public String name;
-    String file;
+    public String file;
     public Body body;
     public Vector2 center;
     public float angle;
