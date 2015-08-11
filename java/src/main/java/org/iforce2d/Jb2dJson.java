@@ -1396,8 +1396,7 @@ public class Jb2dJson {
 
 	public void getImagesForBody(Body body, Array<Jb2dJsonImage> arr) {
 		for (Jb2dJsonImage img : m_images) {
-			if (img.body != null)
-				if (img.body.equals(body))
+			if (body==null&& img.body == null || img.body.equals(body))
 					arr.add(img);
 		}
 
