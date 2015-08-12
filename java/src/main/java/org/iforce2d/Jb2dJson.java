@@ -1394,6 +1394,11 @@ public class Jb2dJson {
 		return m_images;
 	}
 
+	/**
+	 * Get the images which are tied to the specified body. Pass null for unattached images.
+	 * @param body box2d body image refers to
+	 * @return array containing naturally ordered images
+	 */
 	public Jb2dJsonImage[] getImagesForBody(Body body) {
 		Set<Jb2dJsonImage> keys = new HashSet<Jb2dJsonImage>();
 		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
@@ -1401,6 +1406,20 @@ public class Jb2dJson {
 				keys.add(entry.key);
 		}
 		return keys.toArray(new Jb2dJsonImage[0]);
+	}
+
+	/**
+	 * Get the images which are tied to the specified body. Pass null for unattached images.
+	 * @param body box2d body image refers to
+	 * @param arr OrderedMap in which to add the images which refer to the body
+	 * @return the size of the MrderedMap
+	 */
+	public int getImagesForBody(Body body, Array arr) {
+		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
+			if (body==null&&entry.key.body == null||body!=null&&body.equals(entry.key.body))
+				arr.add(entry.key);
+		}
+		return arr.size;
 	}
 
 	public Body getBodyByName(String name) {

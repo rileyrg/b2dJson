@@ -22,35 +22,41 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
 /**
- * 
+ *
  *
  */
-public class Jb2dJsonImage {
+public class Jb2dJsonImage implements Comparable {
 
-    public String name;
-    public String file;
-    public Body body;
-    public Vector2 center;
-    public float angle;
-    float scale;
-    float aspectScale;
-    boolean flip;
-    public float opacity;
-    int filter; // 0 = nearest, 1 = linear
-    float renderOrder;
-    int colorTint[];
+	public String name;
+	public String file;
+	public Body body;
+	public Vector2 center;
+	public float angle;
+	float scale;
+	float aspectScale;
+	boolean flip;
+	public float opacity;
+	int filter; // 0 = nearest, 1 = linear
+	public float renderOrder;
+	int colorTint[];
 
-    public Vector2[] corners;
+	public Vector2[] corners;
 
-    int numPoints;
-    float points[];
-    float uvCoords[];
-    int numIndices;
-    short indices[];
+	int numPoints;
+	float points[];
+	float uvCoords[];
+	int numIndices;
+	short indices[];
 
-    public Jb2dJsonImage() {
-    	colorTint = new int[4];
-    }
-    
+	public Jb2dJsonImage() {
+		colorTint = new int[4];
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		float diff = renderOrder - ((Jb2dJsonImage) o).renderOrder;
+		return diff == 0 ? 0 : diff < 0 ? -1 : 1;
+	}
+
 }
 
