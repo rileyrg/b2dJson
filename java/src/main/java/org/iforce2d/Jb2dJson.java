@@ -1414,7 +1414,7 @@ public class Jb2dJson {
 	 * @param arr OrderedMap in which to add the images which refer to the body
 	 * @return the size of the MrderedMap
 	 */
-	public int getImagesForBody(Body body, Array arr) {
+	public int getImagesForBody(Body body, Array<Jb2dJsonImage> arr) {
 		for (ObjectMap.Entry<Jb2dJsonImage, String> entry : m_imageToNameMap.entries()) {
 			if (body==null&&entry.key.body == null||body!=null&&body.equals(entry.key.body))
 				arr.add(entry.key);
