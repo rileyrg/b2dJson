@@ -67,8 +67,17 @@ public class Jb2dJson {
 
 	protected boolean m_useHumanReadableFloats;
 
-	protected int m_simulationPositionIterations;
-	protected int m_simulationVelocityIterations;
+	public int getM_simulationPositionIterations() {
+		return m_simulationPositionIterations;
+	}
+
+	private int m_simulationPositionIterations;
+
+	public int getM_simulationVelocityIterations() {
+		return m_simulationVelocityIterations;
+	}
+
+	private int m_simulationVelocityIterations;
 	protected float m_simulationFPS;
 
 	protected ObjectMap<Integer, Body> m_indexToBodyMap;
