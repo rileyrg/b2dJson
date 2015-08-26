@@ -38,7 +38,7 @@ public class Jb2dJsonImage implements Comparable {
 	public float opacity;
 	int filter; // 0 = nearest, 1 = linear
 	public float renderOrder;
-	int colorTint[];
+	public int[] colorTint;
 
 	public Vector2[] corners;
 
