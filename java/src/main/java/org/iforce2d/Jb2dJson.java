@@ -2104,7 +2104,7 @@ public class Jb2dJson {
 		{
 			Iterator<ObjectMap.Entry<String, Integer>> it = props.m_customPropertyMap_int.entries().iterator();
 			while (it.hasNext()) {
-				ObjectMap.Entry<String, Integer> pair = (ObjectMap.Entry<String, Integer>) it.next();
+				ObjectMap.Entry<String, Integer> pair = it.next();
 				JSONObject propValue = new JSONObject();
 				propValue.put("name", pair.key);
 				propValue.put("int", pair.value);
@@ -2114,7 +2114,7 @@ public class Jb2dJson {
 		{
 			Iterator<ObjectMap.Entry<String, Double>> it = props.m_customPropertyMap_float.entries().iterator();
 			while (it.hasNext()) {
-				ObjectMap.Entry<String, Double> pair = (ObjectMap.Entry<String, Double>) it.next();
+				ObjectMap.Entry<String, Double> pair = it.next();
 				JSONObject propValue = new JSONObject();
 				propValue.put("name", pair.key);
 				propValue.put("float", pair.value);
@@ -2124,7 +2124,7 @@ public class Jb2dJson {
 		{
 			Iterator<ObjectMap.Entry<String, String>> it = props.m_customPropertyMap_string.entries().iterator();
 			while (it.hasNext()) {
-				ObjectMap.Entry<String, String> pair = (ObjectMap.Entry<String, String>) it.next();
+				ObjectMap.Entry<String, String> pair = it.next();
 				JSONObject propValue = new JSONObject();
 				propValue.put("name", pair.key);
 				propValue.put("string", pair.value);
@@ -2134,7 +2134,7 @@ public class Jb2dJson {
 		{
 			Iterator<ObjectMap.Entry<String, Vector2>> it = props.m_customPropertyMap_vec2.entries().iterator();
 			while (it.hasNext()) {
-				ObjectMap.Entry<String, Vector2> pair = (ObjectMap.Entry<String, Vector2>) it.next();
+				ObjectMap.Entry<String, Vector2> pair = it.next();
 				JSONObject propValue = new JSONObject();
 				propValue.put("name", pair.key);
 				vecToJson("Vector2", pair.value, propValue);
@@ -2144,7 +2144,7 @@ public class Jb2dJson {
 		{
 			Iterator<ObjectMap.Entry<String, Boolean>> it = props.m_customPropertyMap_bool.entries().iterator();
 			while (it.hasNext()) {
-				ObjectMap.Entry<String, Boolean> pair = (ObjectMap.Entry<String, Boolean>) it.next();
+				ObjectMap.Entry<String, Boolean> pair = it.next();
 				JSONObject propValue = new JSONObject();
 				propValue.put("name", pair.key);
 				propValue.put("bool", pair.value);
