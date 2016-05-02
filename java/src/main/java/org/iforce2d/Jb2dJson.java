@@ -1816,6 +1816,15 @@ public class Jb2dJson {
 		}
 		return items.size();
 	}
+	public int getFixturesWithCustomString(String propertyName,Vector<Fixture> items) {
+		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
+		while (iterator.hasNext()) {
+			Fixture item = iterator.next();
+			if (hasCustomString(item, propertyName))
+				items.add(item);
+		}
+		return items.size();
+	}
 
 	public int getFixturesByCustomVector(String propertyName, Vector2 valueToMatch, Vector<Fixture> items) {
 		Iterator<Fixture> iterator = m_fixturesWithCustomProperties.iterator();
