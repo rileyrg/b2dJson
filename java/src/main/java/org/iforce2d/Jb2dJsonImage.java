@@ -47,6 +47,7 @@ public class Jb2dJsonImage implements Comparable {
 	float uvCoords[];
 	int numIndices;
 	short indices[];
+	public String path;
 
 	public Jb2dJsonImage() {
 		colorTint = new int[4];
